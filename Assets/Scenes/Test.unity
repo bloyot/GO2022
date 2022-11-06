@@ -239,7 +239,7 @@ GameObject:
   - component: {fileID: 522926867}
   - component: {fileID: 522926869}
   - component: {fileID: 522926868}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: OnWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -507,16 +507,18 @@ MonoBehaviour:
   Speed: 10
   JumpVelocity: 15
   WallSlideSpeed: 7
+  WallJumpLerp: 10
   FallMultiplier: 3
   LowJumpMultiplier: 15
   GravityScale: 3
+  DashSpeed: 30
   GeometryLayer:
     serializedVersion: 2
     m_Bits: 8
   CollisionRadius: 0.25
-  BottomOffset: {x: 0.03, y: -0.77}
-  RightOffset: {x: 0.42, y: 0}
-  LeftOffset: {x: -0.42, y: 0}
+  BottomOffset: {x: 0.03, y: -0.66}
+  RightOffset: {x: 0.35, y: 0}
+  LeftOffset: {x: -0.3, y: 0}
 --- !u!70 &665006987
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -542,7 +544,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 696058635}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: PlayerStateTexts
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -583,7 +585,7 @@ GameObject:
   - component: {fileID: 703931785}
   - component: {fileID: 703931787}
   - component: {fileID: 703931786}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: InputDirection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -718,7 +720,7 @@ GameObject:
   - component: {fileID: 877147490}
   - component: {fileID: 877147492}
   - component: {fileID: 877147491}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: WallSide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -899,7 +901,7 @@ GameObject:
   - component: {fileID: 1041040078}
   - component: {fileID: 1041040080}
   - component: {fileID: 1041040079}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: OnGround
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1258,7 +1260,7 @@ GameObject:
   - component: {fileID: 1244069352}
   - component: {fileID: 1244069354}
   - component: {fileID: 1244069353}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: InputGrab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1391,7 +1393,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1290423831}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Inputs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1434,13 +1436,13 @@ GameObject:
   - component: {fileID: 1564306344}
   - component: {fileID: 1564306343}
   - component: {fileID: 1564306347}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: DebugCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1564306343
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2043,7 +2045,7 @@ GameObject:
   - component: {fileID: 2028249708}
   - component: {fileID: 2028249710}
   - component: {fileID: 2028249709}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: InputJump
   m_TagString: Untagged
   m_Icon: {fileID: 0}

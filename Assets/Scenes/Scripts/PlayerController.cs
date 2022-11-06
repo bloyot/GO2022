@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
@@ -13,9 +14,11 @@ public class PlayerController : MonoBehaviour
     public float Speed = 10f;
     public float JumpVelocity = 5f;
     public float WallSlideSpeed = 5f;
+    public float WallJumpLerp = 10;
     public float FallMultiplier = 1.5f;
     public float LowJumpMultiplier = 1.5f;
     public float GravityScale = 3f;
+    public float DashSpeed = 20f;
     public LayerMask GeometryLayer;
     public float CollisionRadius = 0.25f;
     public Vector2 BottomOffset, RightOffset, LeftOffset;
@@ -32,6 +35,7 @@ public class PlayerController : MonoBehaviour
     public bool InputJump { get; set; }
     public bool InputJumpHeld { get; set; }
     public bool InputWallGrab { get; set; }
+    public bool InputDash { get; set; }
 
     // internal vars
     public bool FacingRight { get; set; }
@@ -41,6 +45,9 @@ public class PlayerController : MonoBehaviour
     public bool WallSliding { get; set; }
     public bool WallGrabbing { get; set; }
     public bool Dashing { get; set; }
+    public bool Jumping { get; set; }
+    public bool WallJumping { get; set; }
+    public bool CanMove { get; set; }
 
     public enum WALL_SIDE {NONE, LEFT, RIGHT}
 
@@ -50,6 +57,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        CanMove = true;
     }
 
     void Update() {
@@ -76,37 +84,56 @@ public class PlayerController : MonoBehaviour
         InputJump = Input.GetButtonDown("Jump");
         InputJumpHeld = Input.GetButton("Jump");
         InputWallGrab = Input.GetButton("Grab");
+        InputDash = Input.GetButtonDown("Dash");
     }
 
     void Move() {
 
         Walk(InputDir);       
        
+        if (OnGround) {
+            // reset any params for touching the ground (jumping, etc)
+            Jumping = false;
+            WallJumping = false;            
+        }
+
         if (OnWall && !OnGround && !InputWallGrab && InputX != 0) {
             WallSlide();
         } else {
             WallSliding = false;
         }
 
-        if (OnWall && InputWallGrab) {
+        if (OnWall && InputWallGrab && CanMove) {
             rb.gravityScale = 0;
             WallGrab(InputY);            
-        } else {
+        } else if (!Dashing) {
             rb.gravityScale = GravityScale;
             WallGrabbing = false;
         }
 
-        if (OnGround && InputJump) {
-            Jump();
+        if (InputDash) {
+            Dash(InputDir);
         }
-                
+
+        if (InputJump) {
+            if (OnGround) {
+                Jump(Vector2.up);
+                Jumping = true;
+            } else if (OnWall) {
+                WallJump();
+                WallJumping = true;
+            }
+        }
+
         // change gravity during jump for better feel
-        if (rb.velocity.y < 0) {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * FallMultiplier * Time.deltaTime;            
-        } else if (rb.velocity.y > 0 && !InputJumpHeld) {            
-            rb.velocity += Vector2.up * Physics2D.gravity.y * LowJumpMultiplier * Time.deltaTime;
-        }  
-        
+        if (!Dashing) {
+            if (rb.velocity.y < 0) {
+                rb.velocity += Vector2.up * Physics2D.gravity.y * FallMultiplier * Time.deltaTime;
+            }
+            else if (rb.velocity.y > 0 && !InputJumpHeld) {
+                rb.velocity += Vector2.up * Physics2D.gravity.y * LowJumpMultiplier * Time.deltaTime;
+            }
+        }        
     }
 
     private void SetAnimation() {
@@ -114,6 +141,10 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("OnWall", OnWall);
         animator.SetBool("Grabbing", WallGrabbing);
         animator.SetBool("Sliding", WallSliding);
+        animator.SetBool("Jumping", Jumping);
+        animator.SetBool("WallJumping", WallJumping);
+        animator.SetBool("Dashing", Dashing);
+        animator.SetBool("CanMove", CanMove);
         animator.SetFloat("XVelocity", rb.velocity.x);
         animator.SetBool("IsMovingX", !Mathf.Approximately(rb.velocity.x, 0.0f));
         animator.SetFloat("YVelocity", rb.velocity.y);
@@ -121,28 +152,52 @@ public class PlayerController : MonoBehaviour
     }
 
     void SetFacing() {
-        if (InputX > 0) {
+        if (rb.velocity.x > 0) {
             FacingRight = true;
             spriteRenderer.flipX = false;
         }
 
-        if (InputX < 0) {
+        if (rb.velocity.x < 0) {
             FacingRight = false;
             spriteRenderer.flipX = true;
         }
     }
 
     // movement
-    void Walk(Vector2 dir) {        
-        rb.velocity = new Vector2(dir.x * Speed, rb.velocity.y);        
+    void Walk(Vector2 dir) {
+
+        if (!CanMove) {
+            return;
+        }
+
+        if (WallGrabbing) {
+            return;
+        }
+
+        if (WallJumping) {
+            rb.velocity = Vector2.Lerp(rb.velocity, (new Vector2(dir.x * Speed, rb.velocity.y)), WallJumpLerp * Time.deltaTime);
+        } else {
+            rb.velocity = new Vector2(dir.x * Speed, rb.velocity.y);
+        }
+        
     }
 
-    void Jump() {        
-        rb.velocity = new Vector2(rb.velocity.x, JumpVelocity);
+    void Jump(Vector2 direction) {
+        rb.velocity = direction * JumpVelocity;
+    }
+
+    private void WallJump() {
+        StopCoroutine(DisableMovement(0));
+        StartCoroutine(DisableMovement(.1f));
+
+        // jump the opposite direction of the wall we are on
+        Vector2 wallDir = WallSide == WALL_SIDE.LEFT ? Vector2.right : Vector2.left;
+        Debug.Log(Vector2.up / 1.5f + wallDir / 1.5f);
+        Jump(Vector2.up / 1.5f + wallDir / 1.5f);
     }
 
     private void WallGrab(float y) {
-        rb.velocity = new Vector2(rb.velocity.x, y * Speed);
+        rb.velocity = new Vector2(0.0f, y * Speed);
         WallGrabbing = true;
     }
 
@@ -151,6 +206,48 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, -WallSlideSpeed);
             WallSliding = true;
         }
+    }
+
+    void Dash(Vector2 direction) {
+        Vector2 dashDirection = direction;
+        if (direction == Vector2.zero) {
+            dashDirection = FacingRight ? Vector2.right : Vector2.left;
+        }
+        
+        rb.velocity = dashDirection.normalized * DashSpeed;
+        StartCoroutine(DashWait());
+
+    }
+
+    void RigidBodyDrag(float drag) {
+        rb.drag = drag;
+    }
+
+    // enumerators
+    IEnumerator DisableMovement(float time) {
+        CanMove = false;
+        yield return new WaitForSeconds(time);
+        CanMove = true;
+    }
+
+    IEnumerator DashWait() {
+        DOVirtual.Float(8, 0, .8f, RigidBodyDrag);        
+        rb.gravityScale = 0;
+        rb.drag = 14.0f;
+        Dashing = true;
+        CanMove = false;
+
+        yield return new WaitForSeconds(.3f);
+
+        Dashing = false;
+        rb.drag = 0.0f;
+        rb.gravityScale = 3;
+        CanMove = true;               
+    }
+
+    IEnumerable DragModifier() {
+
+        yield return new WaitForSeconds(.3f);
     }
 
     // helpers
