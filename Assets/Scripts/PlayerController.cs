@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour
     public float LowJumpMultiplier = 1.5f;
     public float GravityScale = 3f;
     public float DashSpeed = 20f;
+    public float DashCooldownTime = .3f;
     public LayerMask GeometryLayer;
     public float CollisionRadius = 0.25f;
     public Vector2 BottomOffset, RightOffset, LeftOffset;
@@ -48,16 +49,22 @@ public class PlayerController : MonoBehaviour
     public bool Jumping { get; set; }
     public bool WallJumping { get; set; }
     public bool CanMove { get; set; }
+    
+    public bool CanDash { get; set; }
+
+    public bool DashLockout { get; set; }
 
     public enum WALL_SIDE {NONE, LEFT, RIGHT}
 
     // Start is called before the first frame update
     void Start()
     {
+        Cursor.visible = false;
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         CanMove = true;
+        CanDash = true;
     }
 
     void Update() {
@@ -77,13 +84,13 @@ public class PlayerController : MonoBehaviour
         WallSide = onRightWall ? WALL_SIDE.RIGHT : onLeftWall ? WALL_SIDE.LEFT : WALL_SIDE.NONE;
     }
 
-    void GetInput() {
+    void GetInput() {        
         InputX = Input.GetAxis("Horizontal");
         InputY = Input.GetAxis("Vertical");
         InputDir = new Vector2(InputX, InputY);
         InputJump = Input.GetButtonDown("Jump");
         InputJumpHeld = Input.GetButton("Jump");
-        InputWallGrab = Input.GetButton("Grab");
+        InputWallGrab = Input.GetButton("Grab") || Input.GetAxis("GrabTrigger") != 0.0f;
         InputDash = Input.GetButtonDown("Dash");
     }
 
@@ -94,7 +101,10 @@ public class PlayerController : MonoBehaviour
         if (OnGround) {
             // reset any params for touching the ground (jumping, etc)
             Jumping = false;
-            WallJumping = false;            
+            WallJumping = false;
+            if (!DashLockout) {
+                CanDash = true;
+            }
         }
 
         if (OnWall && !OnGround && !InputWallGrab && InputX != 0) {
@@ -111,7 +121,7 @@ public class PlayerController : MonoBehaviour
             WallGrabbing = false;
         }
 
-        if (InputDash) {
+        if (InputDash && CanDash) {
             Dash(InputDir);
         }
 
@@ -145,10 +155,12 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("WallJumping", WallJumping);
         animator.SetBool("Dashing", Dashing);
         animator.SetBool("CanMove", CanMove);
+        animator.SetBool("CanDash", CanDash);
+        animator.SetBool("DashLockout", DashLockout);
         animator.SetFloat("XVelocity", rb.velocity.x);
         animator.SetBool("IsMovingX", !Mathf.Approximately(rb.velocity.x, 0.0f));
         animator.SetFloat("YVelocity", rb.velocity.y);
-        animator.SetBool("IsMovingY", !Mathf.Approximately(rb.velocity.y, 0.0f));
+        animator.SetBool("IsMovingY", !Mathf.Approximately(rb.velocity.y, 0.0f));        
     }
 
     void SetFacing() {
@@ -191,8 +203,7 @@ public class PlayerController : MonoBehaviour
         StartCoroutine(DisableMovement(.1f));
 
         // jump the opposite direction of the wall we are on
-        Vector2 wallDir = WallSide == WALL_SIDE.LEFT ? Vector2.right : Vector2.left;
-        Debug.Log(Vector2.up / 1.5f + wallDir / 1.5f);
+        Vector2 wallDir = WallSide == WALL_SIDE.LEFT ? Vector2.right : Vector2.left;        
         Jump(Vector2.up / 1.5f + wallDir / 1.5f);
     }
 
@@ -213,10 +224,13 @@ public class PlayerController : MonoBehaviour
         if (direction == Vector2.zero) {
             dashDirection = FacingRight ? Vector2.right : Vector2.left;
         }
-        
-        rb.velocity = dashDirection.normalized * DashSpeed;
-        StartCoroutine(DashWait());
 
+        dashDirection = normalizeDashDirection(dashDirection);
+        
+        rb.velocity = dashDirection * DashSpeed;
+        CanDash = false;
+        StartCoroutine(DashWait());
+        StartCoroutine(DashCooldown(DashCooldownTime));
     }
 
     void RigidBodyDrag(float drag) {
@@ -235,7 +249,7 @@ public class PlayerController : MonoBehaviour
         rb.gravityScale = 0;
         rb.drag = 14.0f;
         Dashing = true;
-        CanMove = false;
+        CanMove = false;        
 
         yield return new WaitForSeconds(.3f);
 
@@ -245,12 +259,18 @@ public class PlayerController : MonoBehaviour
         CanMove = true;               
     }
 
-    IEnumerable DragModifier() {
-
-        yield return new WaitForSeconds(.3f);
+    // make sure you can't dash forever on the ground
+    IEnumerator DashCooldown(float cooldown) {
+        DashLockout = true;
+        yield return new WaitForSeconds(cooldown);
+        DashLockout = false;
     }
 
     // helpers
+    private Vector2 normalizeDashDirection(Vector2 dashDirection) {        
+        return new Vector2(Mathf.Round(dashDirection.normalized.x), Mathf.Round(dashDirection.normalized.y));        
+    }
+
     void OnDrawGizmos() {
         Gizmos.color = Color.red;
 
