@@ -28,8 +28,7 @@ public class Level : MonoBehaviour
         Screws = new List<Screw>(FindObjectsOfType<Screw>());
         TotalScrews = Screws.Count;
         TimeRemaining = LevelTime;
-        PreviousBestTime = GetBestTime();
-        Debug.Log(PreviousBestTime);
+        PreviousBestTime = GetBestTime();        
     }
 
     void Update() {
@@ -39,16 +38,20 @@ public class Level : MonoBehaviour
                 Restart();
             }
 
-            if (TimeRemaining < 0.0) {
+            if (TimeRemaining <= 0.0) {
                 EndLevel(false);
             }
-
-            TimeRemaining -= Time.deltaTime;
+            
+            // time scale accounts for pause
+            TimeRemaining = Mathf.Clamp(TimeRemaining - (Time.deltaTime * Time.timeScale), 0.0f, LevelTime);
         }                
     }
 
     public void EndLevel(bool isSuccessful) {
-        Save(GetCurrentTime());
+        if (isSuccessful) {
+            Save(GetCurrentTime());
+        }
+
         IsLevelEnded = true;
         IsLevelSuccessful = isSuccessful;
         Time.timeScale = 0.0f;
@@ -85,8 +88,7 @@ public class Level : MonoBehaviour
         float currentBestTime = GetBestTime();
         if (newTime < currentBestTime) {
             PlayerPrefs.SetFloat(sceneName, newTime);
-            PlayerPrefs.Save();
-            Debug.Log("Saving: " + newTime);
+            PlayerPrefs.Save();            
         }                
     }
 

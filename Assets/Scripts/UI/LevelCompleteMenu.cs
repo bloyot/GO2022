@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-[RequireComponent(typeof(CanvasGroup))]
-public class LevelCompleteMenu : MonoBehaviour
+public class LevelCompleteMenu : BaseLevelMenu
 {
     public TextMeshProUGUI CurrentTime;
     public TextMeshProUGUI Offset;
@@ -13,25 +12,6 @@ public class LevelCompleteMenu : MonoBehaviour
     public Color PositiveOffsetColor;
     public Color NegativeOffsetColor;
     public Color NeutralOffsetColor;
-
-    public CanvasGroup CanvasGroup;
-
-    void Start() {
-        CanvasGroup = GetComponent<CanvasGroup>();
-        Toggle(false);
-    }
-
-    public void Toggle(bool active) {
-        if (active) {
-            CanvasGroup.alpha = 1;
-            CanvasGroup.blocksRaycasts = true;
-            CanvasGroup.interactable = true;
-        } else {
-            CanvasGroup.alpha = 0;
-            CanvasGroup.blocksRaycasts = false;
-            CanvasGroup.interactable = false;            
-        }
-    }
 
     public void SetTimes(float currentTime, float previousBestTime) {
         float bestTime = previousBestTime < currentTime ? previousBestTime : currentTime;
@@ -50,8 +30,8 @@ public class LevelCompleteMenu : MonoBehaviour
             Offset.color = NeutralOffsetColor;
         }
 
-        Offset.text = "(" + offsetSymbol + Mathf.Abs(offsetTime).ToString("F2") + ")";
-
+        // check for first time 
+        Offset.text = offsetTime > 1000.0f ? "" : "(" + offsetSymbol + Mathf.Abs(offsetTime).ToString("F2") + ")";        
     }
 
 }

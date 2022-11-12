@@ -15,13 +15,11 @@ public class UIController : MonoBehaviour
 
     public PauseMenu PauseMenu;
     public LevelCompleteMenu LevelCompleteMenu;
-
-    private bool paused;    
+    public LevelFailedMenu LevelFailedMenu;    
 
     void Start() {
         Level = FindObjectOfType<Level>();
         Return.enabled = false;
-        PauseMenu.gameObject.SetActive(false);
     }
 
     // Update is called once per frame
@@ -38,7 +36,7 @@ public class UIController : MonoBehaviour
             LevelCompleteMenu.Toggle(true);
             LevelCompleteMenu.SetTimes(currentTime, Level.PreviousBestTime);                        
         } else if (Level.IsLevelEnded) {
-            // TODO 
+            LevelFailedMenu.Toggle(true);
         }
     }
 
@@ -52,17 +50,8 @@ public class UIController : MonoBehaviour
     }
 
     private void HandlePause() {
-        if (Input.GetButtonDown("Pause") && !Level.IsLevelEnded) {
-            if (paused) {
-                paused = false;
-                PauseMenu.gameObject.SetActive(false);
-                Time.timeScale = 1.0f;
-            }
-            else {
-                paused = true;
-                PauseMenu.gameObject.SetActive(true);
-                Time.timeScale = 0.0f;
-            }
+        if (Input.GetButtonDown("Pause") && !Level.IsLevelEnded) {            
+            PauseMenu.Toggle(!PauseMenu.Paused);            
         }
     }
 }
