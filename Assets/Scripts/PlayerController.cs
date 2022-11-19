@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     public float GravityScale = 3f;
     public float DashSpeed = 20f;
     public float DashCooldownTime = .3f;
+    public float JumpSquatTime = .3f;
     public LayerMask GeometryLayer;
     public float CollisionRadius = 0.25f;
     public Vector2 BottomOffset, RightOffset, LeftOffset;
@@ -28,6 +29,11 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
+    private Level Level;
+
+    public ParticleSystem JumpParticle;
+    public ParticleSystem WallSlideParticle;
+    public ParticleSystem WallJumpParticle;
 
     // inputs
     public float InputX { get; set; }
@@ -48,6 +54,7 @@ public class PlayerController : MonoBehaviour
     public bool Dashing { get; set; }
     public bool Jumping { get; set; }
     public bool WallJumping { get; set; }
+    public bool JumpSquat { get; set; }
     public bool CanMove { get; set; }
     
     public bool CanDash { get; set; }
@@ -65,6 +72,7 @@ public class PlayerController : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         CanMove = true;
         CanDash = true;
+        Level = FindObjectOfType<Level>();
     }
 
     void Update() {
@@ -73,6 +81,12 @@ public class PlayerController : MonoBehaviour
         Move();
         SetAnimation();
         SetFacing();
+    }
+
+    // called by enemy or hazards on collision
+    public void Die() {
+        // TODO play death effect/audio      
+        Level.Restart();
     }
 
     void CheckCollisions() {
@@ -96,10 +110,15 @@ public class PlayerController : MonoBehaviour
 
     void Move() {
 
-        Walk(InputDir);       
-       
-        if (OnGround) {
-            // reset any params for touching the ground (jumping, etc)
+        Walk(InputDir);
+
+        // reset any params for touching the ground (jumping, etc)
+        if (OnGround && !JumpSquat) {            
+            // if we're jumping last frame, than play the landing particle effect
+            if (Jumping) {
+                JumpParticle.Play();
+            }
+
             Jumping = false;
             WallJumping = false;
             if (!DashLockout) {
@@ -108,9 +127,15 @@ public class PlayerController : MonoBehaviour
         }
 
         if (OnWall && !OnGround && !InputWallGrab && InputX != 0) {
-            WallSlide();
+            WallSlide();            
+            if (!WallSlideParticle.isPlaying) {
+                WallSlideParticle.Play();
+            }            
         } else {
             WallSliding = false;
+            if (WallSlideParticle.isPlaying) {
+                WallSlideParticle.Stop();
+            }            
         }
 
         if (OnWall && InputWallGrab && CanMove) {
@@ -126,12 +151,13 @@ public class PlayerController : MonoBehaviour
         }
 
         if (InputJump) {
+
+            Jumping = true;
             if (OnGround) {
-                Jump(Vector2.up);
-                Jumping = true;
+                Jump(Vector2.up);                
             } else if (OnWall) {
                 WallJump();
-                WallJumping = true;
+                WallJumping = true;                
             }
         }
 
@@ -153,6 +179,7 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("Sliding", WallSliding);
         animator.SetBool("Jumping", Jumping);
         animator.SetBool("WallJumping", WallJumping);
+        animator.SetBool("JumpSquat", JumpSquat);
         animator.SetBool("Dashing", Dashing);
         animator.SetBool("CanMove", CanMove);
         animator.SetBool("CanDash", CanDash);
@@ -167,11 +194,17 @@ public class PlayerController : MonoBehaviour
         if (rb.velocity.x > 0) {
             FacingRight = true;
             spriteRenderer.flipX = false;
+            if (WallSlideParticle.transform.localPosition.x < 0) {
+                WallSlideParticle.transform.localPosition += new Vector3(1.0f, 0.0f, 0.0f);
+            }            
         }
 
         if (rb.velocity.x < 0) {
             FacingRight = false;
             spriteRenderer.flipX = true;
+            if (WallSlideParticle.transform.localPosition.x > 0) {
+                WallSlideParticle.transform.localPosition += new Vector3(-1.0f, 0.0f, 0.0f);
+            }
         }
     }
 
@@ -194,8 +227,15 @@ public class PlayerController : MonoBehaviour
         
     }
 
-    void Jump(Vector2 direction) {
+    void Jump(Vector2 direction, bool wallJump = false) {
+        StartCoroutine(JumpSquatFrames(JumpSquatTime));
         rb.velocity = direction * JumpVelocity;
+        if (wallJump) {
+            WallJumpParticle.Play();
+        } else {
+            JumpParticle.Play();
+        }
+        
     }
 
     private void WallJump() {
@@ -204,11 +244,12 @@ public class PlayerController : MonoBehaviour
 
         // jump the opposite direction of the wall we are on
         Vector2 wallDir = WallSide == WALL_SIDE.LEFT ? Vector2.right : Vector2.left;        
-        Jump(Vector2.up / 1.5f + wallDir / 1.5f);
+        Jump(Vector2.up / 1.5f + wallDir / 1.5f, true);
     }
 
     private void WallGrab(float y) {
         rb.velocity = new Vector2(0.0f, y * Speed);
+        WallGrabbing = true;
         WallGrabbing = true;
     }
 
@@ -245,7 +286,7 @@ public class PlayerController : MonoBehaviour
     }
 
     IEnumerator DashWait() {
-        DOVirtual.Float(8, 0, .8f, RigidBodyDrag);        
+        DOVirtual.Float(8, 0, .8f, RigidBodyDrag).SetId(this.GetInstanceID());        
         rb.gravityScale = 0;
         rb.drag = 14.0f;
         Dashing = true;
@@ -266,6 +307,13 @@ public class PlayerController : MonoBehaviour
         DashLockout = false;
     }
 
+    // frames during beginning of jump when we are not considering collision or other properties
+    IEnumerator JumpSquatFrames(float cooldown) {
+        JumpSquat = true;
+        yield return new WaitForSeconds(cooldown);
+        JumpSquat = false;
+    }
+
     // helpers
     private Vector2 normalizeDashDirection(Vector2 dashDirection) {        
         return new Vector2(Mathf.Round(dashDirection.normalized.x), Mathf.Round(dashDirection.normalized.y));        
@@ -280,4 +328,8 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawWireSphere((Vector2)transform.position + RightOffset, CollisionRadius);
         Gizmos.DrawWireSphere((Vector2)transform.position + LeftOffset, CollisionRadius);
     }
+
+    void OnDestroy() {
+        DOTween.Kill(this.GetInstanceID());
+    }    
 }

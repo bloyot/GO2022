@@ -58,7 +58,7 @@ public class Level : MonoBehaviour
     }
 
     public void Restart() {
-        StartCoroutine(LoadSceneAsync(SceneManager.GetActiveScene().name));
+        StartCoroutine(Scenes.LoadSceneAsync(SceneManager.GetActiveScene().name));
     }
     public void CollectScrew() {
         CollectedScrews++;
@@ -71,15 +71,6 @@ public class Level : MonoBehaviour
     // return the players current time on the level
     public float GetCurrentTime() {
         return LevelTime - TimeRemaining;
-    }
-
-    IEnumerator LoadSceneAsync(string sceneName) {
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
-
-        // Wait until the asynchronous scene fully loads
-        while (!asyncLoad.isDone) {
-            yield return null;
-        }
     }
 
     public void Save(float newTime) {
