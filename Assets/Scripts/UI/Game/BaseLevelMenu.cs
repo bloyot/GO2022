@@ -17,7 +17,6 @@ public abstract class BaseLevelMenu : BaseMenu
     }  
 
     public void MainMenu() {
-        Debug.Log("MainMenu not yet implemented");
-        // TODO show controls menu screen        
+        StartCoroutine(Scenes.LoadSceneAsync("MainMenu"));       
     }
 }

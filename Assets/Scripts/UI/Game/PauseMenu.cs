@@ -18,4 +18,8 @@ public class PauseMenu : BaseLevelMenu
         // TODO show controls menu screen        
     }
 
+    public void Resume() {
+        Toggle(false);
+    }
+
 }

@@ -29,6 +29,9 @@ public class MainMenu : BaseMenu
     }
 
     public void Quit() {
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
         Application.Quit();        
     }
 }
