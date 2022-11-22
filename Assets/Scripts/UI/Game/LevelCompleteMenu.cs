@@ -31,7 +31,7 @@ public class LevelCompleteMenu : BaseLevelMenu
         }
 
         // check for first time 
-        Offset.text = offsetTime > 1000.0f ? "" : "(" + offsetSymbol + Mathf.Abs(offsetTime).ToString("F2") + ")";        
+        Offset.text = offsetTime < -1000.0f ? "" : "(" + offsetSymbol + Mathf.Abs(offsetTime).ToString("F2") + ")";        
     }
 
     public void NextLevel() {

@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2000572016619140989}
   - component: {fileID: 2000572016619140930}
+  - component: {fileID: 2000572016619140931}
   - component: {fileID: 2000572016619140988}
-  - component: {fileID: 4614952544540254091}
   m_Layer: 0
   m_Name: Screw
   m_TagString: Untagged
@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: f36dcecd953affb48b50dbe62127aed6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 627fab1d6e65de14194f9626a0036121, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -86,6 +86,48 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!60 &2000572016619140931
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000572016619140990}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.67, y: 0.67}
+    newSize: {x: 0.67, y: 0.67}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.285, y: 0.024999999}
+      - {x: 0.33499998, y: 0.074999996}
+      - {x: 0.33499998, y: 0.21499999}
+      - {x: 0.285, y: 0.275}
+      - {x: 0.185, y: 0.33499998}
+      - {x: 0.035, y: 0.33499998}
+      - {x: -0.015, y: 0.285}
+      - {x: -0.074999996, y: 0.035}
+      - {x: -0.145, y: 0.005}
+      - {x: -0.195, y: -0.065}
+      - {x: -0.305, y: -0.145}
+      - {x: -0.33499998, y: -0.195}
+      - {x: -0.33499998, y: -0.33499998}
+      - {x: -0.185, y: -0.33499998}
+      - {x: 0.085, y: -0.065}
+      - {x: 0.16499999, y: -0.024999999}
+      - {x: 0.185, y: 0.015}
 --- !u!114 &2000572016619140988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,29 +142,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Offset: {x: 0, y: 0.5}
   Duration: 1
---- !u!61 &4614952544540254091
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000572016619140990}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: -0.005150795, y: 0.010301709}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.67, y: 0.67}
-    newSize: {x: 0.67, y: 0.67}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 0.845129, y: 0.8142245}
-  m_EdgeRadius: 0
