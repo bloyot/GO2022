@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PauseMenu : BaseLevelMenu
 {
+    public HowToPlayMenu HowToPlayMenu;
 
     public bool Paused { get; set; } = false;    
 
@@ -13,8 +14,9 @@ public class PauseMenu : BaseLevelMenu
         Time.timeScale = Paused ? 0.0f : 1.0f;
     }
 
-    public void Controls() {
-        Debug.Log("Controls not yet implemented");
+    public void HowToPlay() {
+        Toggle(false);
+        HowToPlayMenu.Toggle(true);
         // TODO show controls menu screen        
     }
 

@@ -5,12 +5,12 @@ using UnityEngine.SceneManagement;
 
 public class Scenes : MonoBehaviour
 {
-    public static IEnumerator LoadSceneAsync(string sceneName) {
+    public static IEnumerator LoadSceneAsync(string sceneName) {                
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
 
         // Wait until the asynchronous scene fully loads
         while (!asyncLoad.isDone) {
             yield return null;
         }
-    }
+    }    
 }

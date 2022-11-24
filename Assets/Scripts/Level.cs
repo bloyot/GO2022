@@ -57,7 +57,7 @@ public class Level : MonoBehaviour
         Time.timeScale = 0.0f;
     }
 
-    public void Restart() {
+    public void Restart() {        
         StartCoroutine(Scenes.LoadSceneAsync(SceneManager.GetActiveScene().name));
     }
     public void CollectScrew() {

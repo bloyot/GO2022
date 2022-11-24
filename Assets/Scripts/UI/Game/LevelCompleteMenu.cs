@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelCompleteMenu : BaseLevelMenu
 {
@@ -12,6 +13,15 @@ public class LevelCompleteMenu : BaseLevelMenu
     public Color PositiveOffsetColor;
     public Color NegativeOffsetColor;
     public Color NeutralOffsetColor;
+
+    public GameObject NextLevelButton;
+
+    protected override void Init() {
+        base.Init();
+        if (SceneManager.GetActiveScene().name == "Level3") {
+            NextLevelButton.SetActive(false);
+        }
+    }
 
     public void SetTimes(float currentTime, float previousBestTime) {
         float bestTime = previousBestTime < currentTime ? previousBestTime : currentTime;
@@ -35,8 +45,15 @@ public class LevelCompleteMenu : BaseLevelMenu
     }
 
     public void NextLevel() {
-        Debug.Log("next level not implemented yet");
-        // TODO load next level
+        // hacky but good enough for our purposes since we only have 3 levels
+        if (SceneManager.GetActiveScene().name == "Level1") {
+            StartCoroutine(Scenes.LoadSceneAsync("Level2"));
+        }
+
+        if (SceneManager.GetActiveScene().name == "Level2") {
+            StartCoroutine(Scenes.LoadSceneAsync("Level3"));
+        }
+
     }
 
 }

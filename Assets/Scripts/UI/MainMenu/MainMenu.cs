@@ -7,6 +7,8 @@ public class MainMenu : BaseMenu
 {
 
     public LevelSelectMenu LevelSelectMenu;
+    public HowToPlayMenu HowToPlayMenu;
+    public HowToPlayMenu CreditsMenu;
 
     protected override void Init() {       
         base.Init();
@@ -18,14 +20,14 @@ public class MainMenu : BaseMenu
         LevelSelectMenu.Toggle(true);
     }
 
-    public void Controls() {
-        Debug.Log("Controls not yet implemented");
-        // TODO show controls menu screen        
+    public void HowToPlay() {
+        Toggle(false);
+        HowToPlayMenu.Toggle(true);
     }
 
     public void Credits() {
-        Debug.Log("Credits not yet implemented");
-        // TODO show controls menu screen        
+        Toggle(false);
+        CreditsMenu.Toggle(true);
     }
 
     public void Quit() {

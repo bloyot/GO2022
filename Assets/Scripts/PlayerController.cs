@@ -24,6 +24,8 @@ public class PlayerController : MonoBehaviour
     public LayerMask GeometryLayer;
     public float CollisionRadius = 0.25f;
     public Vector2 BottomOffset, RightOffset, LeftOffset;
+    public AudioSource DashSound;
+    public AudioSource DeathSound;
 
     // components
     private Rigidbody2D rb;
@@ -85,8 +87,7 @@ public class PlayerController : MonoBehaviour
 
     // called by enemy or hazards on collision
     public void Die() {
-        // TODO play death effect/audio      
-        Level.Restart();
+        StartCoroutine(DieEnumerator());
     }
 
     void CheckCollisions() {
@@ -269,6 +270,7 @@ public class PlayerController : MonoBehaviour
         dashDirection = normalizeDashDirection(dashDirection);
         
         rb.velocity = dashDirection * DashSpeed;
+        DashSound.Play();
         CanDash = false;
         StartCoroutine(DashWait());
         StartCoroutine(DashCooldown(DashCooldownTime));
@@ -312,6 +314,27 @@ public class PlayerController : MonoBehaviour
         JumpSquat = true;
         yield return new WaitForSeconds(cooldown);
         JumpSquat = false;
+    }
+
+    IEnumerator DieEnumerator() {
+        yield return StartCoroutine(DieWait());
+        yield return StartCoroutine(DieEffect());
+    }
+
+    IEnumerator DieWait() {
+        yield return new WaitForSecondsRealtime(0.05f);
+    }
+
+    IEnumerator DieEffect() {
+        Time.timeScale = 0.0f;
+        DeathSound.Play();
+        CanMove = false;
+        CanDash = false;
+        yield return new WaitForSecondsRealtime(1.0f);
+        CanMove = true;
+        CanDash = true;
+        Time.timeScale = 1.0f;
+        Level.Restart();
     }
 
     // helpers
